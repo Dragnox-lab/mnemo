@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in — Mnemo Classrooms</title>
+  <!-- Theme sync: inherit whichever theme the user picked in the main app -->
+  <script>
+  (function(){
+    var ALLOWED = ['obsidian','blonde','irish','magenta'];
+    function readTheme(){
+      try {
+        var raw = localStorage.getItem('mnemo_v6');
+        var data = raw ? JSON.parse(raw) : null;
+        var t = data && data.settings && data.settings.theme;
+        return ALLOWED.indexOf(t) !== -1 ? t : 'obsidian';
+      } catch(e) { return 'obsidian'; }
+    }
+    document.documentElement.setAttribute('data-theme', readTheme());
+    window.addEventListener('storage', function(e){
+      if (e.key === 'mnemo_v6') document.documentElement.setAttribute('data-theme', readTheme());
+    });
+  })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="classroom.css">
+</head>
+<body>
+  <div class="center-page">
+    <div class="auth-card">
+      <h1>Mnemo Classrooms</h1>
+      <p class="sub">Collaborate, share decks, and learn together.</p>
+      <div class="auth-tabs">
+        <button data-tab="login"  class="active">Sign in</button>
+        <button data-tab="signup">Sign up</button>
+        <button data-tab="reset">Reset</button>
+      </div>
+      <form id="authForm" autocomplete="on">
+        <div id="nameField" style="display:none">
+          <label for="aName">Name</label>
+          <input id="aName" type="text" placeholder="Your full name">
+        </div>
+        <label for="aEmail">Email</label>
+        <input id="aEmail" type="email" placeholder="you@example.com" required>
+        <div id="pwField">
+          <label for="aPw">Password</label>
+          <input id="aPw" type="password" placeholder="••••••••" minlength="6">
+        </div>
+        <button type="submit" class="btn primary" style="width:100%; margin-top:18px; justify-content:center">
+          <span id="authBtnText">Sign in</span>
+        </button>
+      </form>
+      <div class="auth-foot">
+        <a href="app.html">Continue to app →</a>
+      </div>
+    </div>
+  </div>
+  <script src="classroom.js"></script>
+  <script>
+    const tabs = document.querySelectorAll('.auth-tabs button');
+    const nameField = document.getElementById('nameField');
+    const pwField   = document.getElementById('pwField');
+    const btnText   = document.getElementById('authBtnText');
+    let mode = 'login';
+    tabs.forEach(t => t.onclick = () => {
+      tabs.forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      mode = t.dataset.tab;
+      nameField.style.display = mode === 'signup' ? 'block' : 'none';
+      pwField.style.display   = mode === 'reset'  ? 'none'  : 'block';
+      btnText.textContent = ({ login:'Sign in', signup:'Create account', reset:'Send reset link' })[mode];
+    });
+    document.getElementById('authForm').onsubmit = (e) => {
+      e.preventDefault();
+      const email = document.getElementById('aEmail').value.trim();
+      const name  = document.getElementById('aName').value.trim() || email.split('@')[0];
+      if (mode === 'reset') { CR.toast('Reset link sent to ' + email); return; }
+      CR.setUser({ id: 'u_' + btoa(email).slice(0,8), name, email });
+      CR.toast(mode === 'signup' ? 'Account created' : 'Signed in');
+      setTimeout(() => location.href = 'app.html', 600);
+    };
+  </script>
+</body>
+</html>
